@@ -1,4 +1,4 @@
-function [cineq ceq] = constraints(x,z0,p)
+function [cineq ceq] = constraints(x,z0, ctrl, tf)
 % Inputs:
 % x - an array of decision variables.
 % z0 - the initial state
@@ -19,17 +19,17 @@ function [cineq ceq] = constraints(x,z0,p)
 % However, fmincon() will only pass in x; z0 and p will have to be
 % provided using an anonymous function, just as we use anonymous
 % functions with ode45().
-    ctrl.tf = x(2);
-    ctrl.T = x(3:end);
-    [t_1, z_1, u_1, ind_1, sols_1] = hybrid_simulation(z0,ctrl,p,[0 x(1)]);
+    p =  parameters(x(1), x(2), x(3));
+    [t_1, z_1, u_1, ind_1, sols_1] = hybrid_simulation(z0,ctrl,p,[0 tf]);
 
     h_c = COM_jumping_leg(z_1(:,end),p); %find COM coordinates at end of sim
     apex = h_c(2); %y coord at end of sim
     velo = h_c(4); %y velocity at end of sim
-       
-    cineq = [-min(z_1(2,:)), max(z_1(2,:))-pi/2]; %prevent falling thru floor and hyperextension                                       
     
-    ceq = [ctrl.tf-t_1(ind_1(1))]; %enforce time criteria
+    cineq = [-min(acos(((p(1)/p(2))*cos(z_1(2,:))))), max(z_1(2,:))-pi/2]; %prevent falling thru floor and hyperextension                                       
+    
+    ceq = [];
+    %ceq = [ctrl.tf-t_1(ind_1(1))]; %enforce time criteria
 
 %     ceq = [ctrl.tf-t_1(ind_1(1)), apex-.4, velo]; %enforce time and apex criteria
                                                            

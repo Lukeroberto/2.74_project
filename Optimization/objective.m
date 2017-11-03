@@ -1,4 +1,4 @@
-function f = objective(x,z0,p)
+function f = objective(x,z0, ctrl, tf)
 % Inputs:
 % x - an array of decision variables.
 % z0 - the initial state
@@ -16,14 +16,13 @@ function f = objective(x,z0,p)
 % However, fmincon() will only pass in x; z0 and p will have to be
 % provided using an anonymous function, just as we use anonymous
 % functions with ode45().
-    ctrl.tf = x(2);
-    ctrl.T = x(3:end);
-    [t_1, z_1, u_1, ind_1, sols_1] = hybrid_simulation(z0,ctrl,p,[0 x(1)]);
-    h_c = COM_jumping_leg(z_1(:,end),p);
-    f = -h_c(2);    % negative of COM height
+    p = parameters(x(1), x(2), x(3));
+    [t_1, z_1, u_1, ind_1, sols_1] = hybrid_simulation(z0,ctrl,p,[0 tf]);
+    h_c = COM_jumping_leg(z_1,p);
+    f = -max(h_c(2,:));    % negative of COM height
 
     % alternate objective functions:
 %     f = x(1);   % final time
 %     f = z_1(5,end);    % minimize T^2 integral
-    
+   
 end
