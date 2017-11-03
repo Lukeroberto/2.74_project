@@ -2,7 +2,7 @@ function derive_everything()
 name = 'jumping_leg';
 
 % Define variables for time, generalized coordinates + derivatives, controls, and parameters 
-syms t y dy ddy th1 th2 dth1 dth2 ddth1 ddth2 tau Fy l c1 c2 m1 m2 mh I1 I2 g kappa nu Is real
+syms t y dy ddy th1 th2 dth1 dth2 ddth1 ddth2 tau Fy l1 l2 c1 c2 m1 m2 mh I1 I2 g kappa nu Is real
 %additional state from the spring
 
 % Group them for later use.
@@ -11,7 +11,7 @@ dq  = [dy; dth1; dth2];    % first time derivatives
 ddq = [ddy; ddth1; ddth2];  % second time derivatives
 u   = tau;          % control forces and moments
 Fc   = Fy;           % constraint forces and moments
-p   = [l; c1; c2; m1; m2; mh; I1; I2; g; kappa; nu; Is];  % parameters
+p   = [l1; l2; c1; c2; m1; m2; mh; I1; I2; g; kappa; nu; Is];  % parameters
 
 %%% Calculate important vectors and their time derivatives.
 
@@ -23,7 +23,8 @@ jhat = [0; 1; 0];
 khat = cross(ihat,jhat);
 
 % Define other unit vectors for use in defining other vectors.
-er1hat =  cos(th1)*ihat + sin(th1) * jhat;
+thA = acos((l1/l2)*cos(th1));
+er1hat =  cos(thA)*ihat + sin(thA) * jhat;
 er2hat = -cos(th1)*ihat + sin(th1) * jhat;
 
 % A handy anonymous function for taking first and second time derivatives
@@ -32,10 +33,10 @@ ddt = @(r) jacobian(r,[q;dq])*[dq;ddq];
 
 % Define vectors to key points.
 rf = y*jhat;
-rcm1 = rf+c1*er1hat;
-rk = rf+l*er1hat;
-rcm2 = rk + c2*er2hat;
-rh = rk + l*er2hat;
+rcm1 = rf + c1*er1hat; %lower leg cm
+rk = rf + l1*er1hat;
+rcm2 = rk + c2*er2hat; %upper leg cm
+rh = rk + l2*er2hat;
 keypoints = [rh rk rf];
 
 % Take time derivatives of vectors as required for kinetic energy terms.
@@ -57,7 +58,7 @@ M2Q = @(M,w) simplify(jacobian(w,dq)'*(M));
 
 % Define kinetic energies. See Lecture 6 formula for kinetic energy
 % of a rigid body.
-T1 = (1/2)*m1*dot(drcm1, drcm1) + (1/2)* I1 * dth1^2;
+T1 = (1/2)*m1*dot(drcm1, drcm1) + (1/2)* I1 * dthA^2;
 T2 = (1/2)*m2*dot(drcm2, drcm2) + (1/2)* I2 * (-dth1)^2;
 Th = (1/2)*mh*dot(drh, drh);
 Ts = (1/2)*Is*(dth2)^2;
@@ -68,7 +69,7 @@ Ts = (1/2)*Is*(dth2)^2;
 V1 = m1*g*dot(rcm1, jhat);
 V2 = m2*g*dot(rcm2, jhat);
 Vh = mh*g*dot(rh, jhat);
-Vs = (1/2)*kappa*(th2-th1)^2;
+Vs = (1/2)*kappa*(th2th1)^2;
 
 % Define contributions to generalized forces.  See Lecture 6 formulas for
 % contributions to generalized forces.

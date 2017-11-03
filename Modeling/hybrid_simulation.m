@@ -127,4 +127,6 @@ function [value,isterminal,direction] = event_conditions(t,z,ctrl,p,iphase)
         isterminal(2) = 1;              % terminate integration when foot height is zero
         direction(2) = -1;              % if it's decreasing
     end
+    value(3) = z(2);      %hip angle
+    
 end
