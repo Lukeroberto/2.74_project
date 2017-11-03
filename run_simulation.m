@@ -9,23 +9,27 @@ clear
 % http://www.mathworks.com/help/matlab/matlab_env/what-is-the-matlab-search-path.html
 setpath                                     % add AutoDerived, Modeling, and Visualization folders to Matlab path
 
-p = parameters();                           % get parameters from file
+                           % get parameters from file
 z0 = [0; pi/6; 0; 0; 0; 0; 0];                    % set initial state
 % Note: 5th state is the integral of torque squared over time
 % An equation has been added to dynamics_continuous and dynamics_discrete
 % to integrate this new state.
 
 % set guess
-tf = 0.5;                                        % simulation final time
-ctrl.tf = 0.4;                                  % control time points
-ctrl.T = [1.5 1.5 1.5];                               % control values
+tf = 2;                                        % simulation final time
+ctrl.tf = .5;                                  % control time points
+ctrl.T = [2 2 2];                               % control values
 
-% % setup and solve nonlinear programming problem
-problem.objective = @(x) objective(x,z0,p);     % create anonymous function that returns objective
-problem.nonlcon = @(x) constraints(x,z0,p);     % create anonymous function that returns nonlinear constraints
-problem.x0 = [tf ctrl.tf ctrl.T];               % initial guess for decision variables
-problem.lb = [.1 .1 -2*ones(size(ctrl.T))];     % lower bound on decision variables
-problem.ub = [1  1   2*ones(size(ctrl.T))];     % upper bound on decision variables
+kappa = 2;
+l_ratio = 1;
+m_ratio = 1;
+
+% % setup and solve nonlin.16/.9ear programming problem
+problem.objective = @(x) objective(x,z0,ctrl, tf);     % create anonymous function that returns objective
+problem.nonlcon = @(x) constraints(x,z0,ctrl, tf);     % create anonymous function that returns nonlinear constraints
+problem.x0 = [kappa l_ratio m_ratio];               % initial guess for decision variables
+problem.lb = [.01 0.9 0.8];     % lower bound on decision variables
+problem.ub = [10  1.1   1.1];     % upper bound on decision variables
 problem.Aineq = []; problem.bineq = [];         % no linear inequality constraints
 problem.Aeq = []; problem.beq = [];             % no linear equality constraints
 problem.options = optimset('Display','iter');   % set options
@@ -34,9 +38,10 @@ x = fmincon(problem);                           % solve nonlinear programming pr
 
 % Note that once you've solved the optimization problem, you'll need to 
 % re-define tf, tfc, and ctrl here to reflect your solution.
-tf = x(1);
-ctrl.tf = x(2);
-ctrl.T = x(3:end); 
+kappa = x(1);
+l_ratio = x(2);
+m_ratio = x(3); 
+p = parameters(kappa, l_ratio, m_ratio);
 [t, z, u, indices] = hybrid_simulation(z0,ctrl,p,[0 tf]); % run simulation
 
 % Plot COM for your submissions
@@ -55,5 +60,9 @@ animate_simple(t,z,p,speed)                 % run animation
 figure(3)
 subplot(211)
 plot(t,z(2,:))
+xlabel('Time [s]')
+ylabel('Theta 1 [m]')
 subplot(212)
 plot(t,z(3,:))
+xlabel('Time [s]')
+ylabel('Theta 2 [m]')
