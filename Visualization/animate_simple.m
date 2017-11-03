@@ -1,6 +1,6 @@
 function animate_simple(t,z,p, speed)
     hold on
-    axis([-.2 .2 -.2 3])
+    axis([-.2 .2 -4 4])
     axis equal % sets the X:Y aspect ratio 1:1; otherwise things will look stretched
     h_ground = plot([-1 1],[0 0],'k-','LineWidth',5);
     h_leg    = plot([0],[0],'-o',...
