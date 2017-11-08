@@ -2,7 +2,7 @@ function derive_everything()
 name = 'jumping_leg';
 
 % Define variables for time, generalized coordinates + derivatives, controls, and parameters 
-syms t y dy ddy th1 th2 dth1 dth2 ddth1 ddth2 tau Fy l1 l2 c1 c2 m1 m2 mh I1 I2 g kappa nu Is real
+syms t y dy ddy th1 th2 dth1 dth2 ddth1 ddth2 tau Fy Fk l1 l2 c1 c2 m1 m2 mh I1 I2 g kappa nu Is real
 %additional state from the spring
 
 % Group them for later use.
@@ -11,6 +11,7 @@ dq  = [dy; dth1; dth2];    % first time derivatives
 ddq = [ddy; ddth1; ddth2];  % second time derivatives
 u   = tau;          % control forces and moments
 Fc   = Fy;           % constraint forces and moments
+Flim = Fk;           %
 p   = [l1; l2; c1; c2; m1; m2; mh; I1; I2; g; kappa; nu; Is];  % parameters
 
 %%% Calculate important vectors and their time derivatives.
@@ -23,7 +24,7 @@ jhat = [0; 1; 0];
 khat = cross(ihat,jhat);
 
 % Define other unit vectors for use in defining other vectors.
-thA = acos((l1/l2)*cos(th1));
+thA = (acos((l2/l1)*cos(th1)));
 er1hat =  cos(thA)*ihat + sin(thA) * jhat;
 er2hat = -cos(th1)*ihat + sin(th1) * jhat;
 
@@ -32,6 +33,7 @@ er2hat = -cos(th1)*ihat + sin(th1) * jhat;
 ddt = @(r) jacobian(r,[q;dq])*[dq;ddq]; 
 
 % Define vectors to key points.
+dthA = ddt(thA);
 rf = y*jhat;
 rcm1 = rf + c1*er1hat; %lower leg cm
 rk = rf + l1*er1hat;
@@ -43,6 +45,7 @@ keypoints = [rh rk rf];
 drcm1 = ddt(rcm1);
 drcm2 = ddt(rcm2);
 drh   = ddt(rh);
+drk   = ddt(rk);
 
 %%% Calculate Kinetic Energy, Potential Energy, and Generalized Forces
 
@@ -69,11 +72,12 @@ Ts = (1/2)*Is*(dth2)^2;
 V1 = m1*g*dot(rcm1, jhat);
 V2 = m2*g*dot(rcm2, jhat);
 Vh = mh*g*dot(rh, jhat);
-Vs = (1/2)*kappa*(th2th1)^2;
+Vs = (1/2)*kappa*(th2-th1)^2;
 
 % Define contributions to generalized forces.  See Lecture 6 formulas for
 % contributions to generalized forces.
 QF = F2Q(Fy*jhat,rf);
+QFk = F2Q(Fk*ihat,rk);
 Qtau_1 = M2Q(-tau*khat, -dth2*khat);
 Qdamp = M2Q(-nu*(dth2-dth1)*khat, -dth1*khat);
 
@@ -81,7 +85,7 @@ Qdamp = M2Q(-nu*(dth2-dth1)*khat, -dth1*khat);
 % contributions.
 T = T1 + T2 + Th + Ts;
 V = V1 + V2 + Vh + Vs;
-Q = QF + Qtau_1 + Qdamp;
+Q = QF + Qtau_1 + Qdamp +QFk;
 
 % Calculate rcm, the location of the center of mass
 rcm = (m1*rcm1 + m2*rcm2 + mh*rh)/(m1+m2+mh);
@@ -114,12 +118,14 @@ matlabFunction(E,'file',[directory 'energy_' name],'vars',{z p});
 % Write a function to evaluate the A matrix of the system given the current state and parameters
 matlabFunction(A,'file',[directory 'A_' name],'vars',{z p});
 % Write a function to evaluate the b vector of the system given the current state, current control, and parameters
-matlabFunction(b,'file',[directory 'b_' name],'vars',{z u Fc p});
+matlabFunction(b,'file',[directory 'b_' name],'vars',{z u Fc Flim p});
 
 matlabFunction(keypoints,'file',[directory 'keypoints_' name],'vars',{z p});
 
 matlabFunction(C,'file',[directory 'C_' name],'vars',{z u p});
 matlabFunction(dC,'file',[directory 'dC_' name],'vars',{z u p});
+matlabFunction(rk,'file',[directory 'rk_' name],'vars',{z u p});
+matlabFunction(drk,'file',[directory 'drk_' name],'vars',{z u p});
 
 % Write a function to evaluate the X and Y coordinates and speeds of the center of mass given the current state and parameters
 drcm = ddt(rcm);             % Calculate center of mass velocity vector

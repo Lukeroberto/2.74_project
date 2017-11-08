@@ -28,7 +28,7 @@ function [tout, zout, uout, indices, sols] = hybrid_simulation(z0,ctrl,p,tspan)
         % function (1== stance, 2 == flight)
         opts = odeset('Events', @(t,z) event_conditions(t,z,ctrl,p,iphase), 'abstol',inttol,'reltol',inttol);
         f = @(t,z) dynamics_continuous(t, z, ctrl,p, iphase);    % we also include the number of the phase in the call to the EoM function
-        sol = ode45(f, [t0 tend], z0, opts);    % integate until an event happens or time runs out
+        sol = ode45(f, [t0 tend], z0, opts);    % integrate until an event happens or time runs out
         sol.iphase = iphase;                    % store the phase number in the solution structure
         t0 = sol.x(end);                        % reset the integration initial time
 
@@ -60,28 +60,39 @@ function [tout, zout, uout, indices, sols] = hybrid_simulation(z0,ctrl,p,tspan)
 end
 
 %% Continuous dynamics
-function [dz, Fc] = dynamics_continuous(t,z,ctrl,p,iphase)
+function [dz, Fc, Flim] = dynamics_continuous(t,z,ctrl,p,iphase)
 
     u = control_laws(t,z,ctrl,p,iphase);  % get controls at this instant
-   
+    
     % Contact model
     if iphase == 2  % in flight phase
        Fc = 0;
     else            % in stance phase
-       C =  C_jumping_leg(z,p);
+       C =  C_jumping_leg(z,u,p);
        if C < 0   
-        dC= dC_jumping_leg(z,p);
-        Fc = -500 * C - 3*dC;
-        if Fc < 0
-            Fc = 0;
-        end
+            dC= dC_jumping_leg(z,u,p);
+            Fc = -10000 * C - 3*dC;
+            if Fc < 0
+                Fc = 0;
+            end
        else
         Fc = 0;
        end
     end
+    %Contact model for knee
+    rk = rk_jumping_leg(z,u,p);
+    if rk(1) < 0
+        drk = drk_jumping_leg(z,u,p);
+        Flim = -1000*rk(1) - 3*drk(1);
+        if Flim < 0
+            Flim = 0;
+        end
+    else 
+        Flim = 0; 
+    end
     
     A = A_jumping_leg(z,p);                 % get full A matrix
-    b = b_jumping_leg(z,u,Fc,p);               % get full b vector
+    b = b_jumping_leg(z,u,Fc,Flim,p);               % get full b vector
     
     x = A\b;                % solve system for accelerations (and possibly forces)
 
@@ -118,15 +129,13 @@ end
 function [value,isterminal,direction] = event_conditions(t,z,ctrl,p,iphase)
 
     if iphase == 1                      % in stance phase
-        [x, Fc] = dynamics_continuous(t,z,ctrl,p,iphase);
+        [x, Fc, Flim] = dynamics_continuous(t,z,ctrl,p,iphase);
         value(1) = Fc;              
         isterminal(1) = 1;              % terminate integration when ground reaction force is zero
         direction(1) = -1;              % if it's decreasing
     else
-        value(2) = z(1);                % value() is the foot height
+        value(2) = real(z(1));                % value() is the foot height
         isterminal(2) = 1;              % terminate integration when foot height is zero
         direction(2) = -1;              % if it's decreasing
     end
-    value(3) = z(2);      %hip angle
-    
 end
