@@ -16,9 +16,9 @@ z0 = [0; pi/6; 0; 0; 0; 0; 0];                    % set initial state
 % to integrate this new state.
 
 % set guess
-tf = 1;                                        % simulation final time
-ctrl.tf = .5;                                  % control time points
-ctrl.T = [2 2 2];                               % control values
+tf = 1;                          % simulation final time
+ctrl.tf = .5;                    % control time points
+ctrl.T = [.5 .5 .5];             % control values limited by motor selection currently .77 Nm pololu
 
 kappa = .5;
 l_ratio = .9;
@@ -27,10 +27,10 @@ m_ratio = 1;
 % % setup and solve nonlin.16/.9ear programming problem
 problem.objective = @(x) objective(x,z0,ctrl, tf);     % create anonymous function that returns objective
 problem.nonlcon = @(x) constraints(x,z0,ctrl, tf);     % create anonymous function that returns nonlinear constraints
-problem.x0 = [kappa l_ratio m_ratio];               % initial guess for decision variables
-problem.lb = [.1 0.5 0.1];     % lower bound on decision variables
-problem.ub = [100  1 10];     % upper bound on decision variables
-problem.Aineq = []; problem.bineq = [];         % no linear inequality constraints
+problem.x0 = [kappa l_ratio m_ratio tf ctrl.tf ctrl.T];       % initial guess for decision variables
+problem.lb = [.1 0.5 0.1 0.1 .1 -1.5*ones(size(ctrl.T))];     % lower bound on decision variables
+problem.ub = [100  1  10  2   2  1.5*ones(size(ctrl.T))];     % upper bound on decision variables
+problem.Aineq = []; problem.bineq = [];         % no linear inequality constraints ADD POWER CONSTRAINT, SPECIFY AS POLYNOMIAL, DERIVATIVE OF TORQUE
 problem.Aeq = []; problem.beq = [];             % no linear equality constraints
 problem.options = optimset('Display','iter');   % set options
 problem.solver = 'fmincon';                     % required
@@ -41,6 +41,9 @@ x = fmincon(problem);                           % solve nonlinear programming pr
 kappa = x(1);
 l_ratio = x(2);
 m_ratio = x(3); 
+tf = x(4);
+ctrl.tf = x(5);
+ctrl.T = x(6:end);
 p = parameters(kappa, l_ratio, m_ratio);
 [t, z, u, indices] = hybrid_simulation(z0,ctrl,p,[0 tf]); % run simulation
 
@@ -58,15 +61,30 @@ clf                                         % clear fig
 animate_simple(t,z,p,speed)                 % run animation
 
 figure(3)
-subplot(311)
+subplot(321)
 plot(t,z(2,:))
 xlabel('Time [s]')
 ylabel('Theta 1 [rad]')
-subplot(312)
+subplot(323)
 plot(t,z(3,:))
 xlabel('Time [s]')
 ylabel('Theta 2 [rad]')
-subplot(313)
+subplot(325)
 plot(t,z(3,:)-z(2,:))
 xlabel('Time [s]')
 ylabel('delta Theta [rad]')
+subplot(322)
+plot(t,z(5,:))
+xlabel('Time [s]')
+ylabel('Theta 1 [rad/s]')
+subplot(324)
+plot(t,z(6,:))
+xlabel('Time [s]')
+ylabel('Theta 2 [rad/s]')
+subplot(326)
+ctrl.t = linspace(0,ctrl.tf,length(ctrl.T));
+u = interp1(ctrl.t,ctrl.T,ctrl.t,'linear','extrap');
+plot(ctrl.t,u)
+xlabel('Time [s]')
+ylabel('Torque [Nm]')
+
