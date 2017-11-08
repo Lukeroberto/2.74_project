@@ -16,20 +16,20 @@ z0 = [0; pi/6; 0; 0; 0; 0; 0];                    % set initial state
 % to integrate this new state.
 
 % set guess
-tf = 2;                                        % simulation final time
+tf = 1;                                        % simulation final time
 ctrl.tf = .5;                                  % control time points
 ctrl.T = [2 2 2];                               % control values
 
-kappa = 2;
-l_ratio = 1;
+kappa = .5;
+l_ratio = .9;
 m_ratio = 1;
 
 % % setup and solve nonlin.16/.9ear programming problem
 problem.objective = @(x) objective(x,z0,ctrl, tf);     % create anonymous function that returns objective
 problem.nonlcon = @(x) constraints(x,z0,ctrl, tf);     % create anonymous function that returns nonlinear constraints
 problem.x0 = [kappa l_ratio m_ratio];               % initial guess for decision variables
-problem.lb = [.01 0.9 0.8];     % lower bound on decision variables
-problem.ub = [10  1.1   1.1];     % upper bound on decision variables
+problem.lb = [.1 0.5 0.1];     % lower bound on decision variables
+problem.ub = [100  1 10];     % upper bound on decision variables
 problem.Aineq = []; problem.bineq = [];         % no linear inequality constraints
 problem.Aeq = []; problem.beq = [];             % no linear equality constraints
 problem.options = optimset('Display','iter');   % set options
@@ -58,11 +58,15 @@ clf                                         % clear fig
 animate_simple(t,z,p,speed)                 % run animation
 
 figure(3)
-subplot(211)
+subplot(311)
 plot(t,z(2,:))
 xlabel('Time [s]')
-ylabel('Theta 1 [m]')
-subplot(212)
+ylabel('Theta 1 [rad]')
+subplot(312)
 plot(t,z(3,:))
 xlabel('Time [s]')
-ylabel('Theta 2 [m]')
+ylabel('Theta 2 [rad]')
+subplot(313)
+plot(t,z(3,:)-z(2,:))
+xlabel('Time [s]')
+ylabel('delta Theta [rad]')
