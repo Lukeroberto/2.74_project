@@ -1,8 +1,8 @@
 function p = parameters(kappa, l_ratio, m_ratio) 
 %l_ratio = l2/l1
 %m_ration = mh/m_legs
-l_tot = .20; 
-m_tot = .5; 
+l_tot = .30; 
+m_tot = .30; 
 l1 = l_tot/(1+l_ratio);
 l2 = l_ratio*l1;
 mh = m_tot/(1+1/m_ratio);
