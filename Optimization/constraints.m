@@ -20,6 +20,10 @@ function [cineq ceq] = constraints(x,z0, ctrl, tf)
 % provided using an anonymous function, just as we use anonymous
 % functions with ode45().
     p =  parameters(x(1), x(2), x(3));
+    tf = x(4);
+    ctrl.tf = x(5);
+    ctrl.T = x(6:end);
+    
     [t_1, z_1, u_1, ind_1, sols_1] = hybrid_simulation(z0,ctrl,p,[0 tf]);
 
     h_c = COM_jumping_leg(z_1(:,end),p); %find COM coordinates at end of sim
@@ -30,10 +34,10 @@ function [cineq ceq] = constraints(x,z0, ctrl, tf)
     cineq = [-min(acos(((p(2)/p(1))*cos(z_1(2,:)))))]; 
 %     cineq = [-min(acos(((p(1)/p(2))*cos(z_1(2,:))))), max(z_1(2,:))-pi/2]; %prevent falling thru floor and hyperextension                                       
     
-    ceq = [];
+%     ceq = [];
 %     ceq = [ctrl.tf-t_1(ind_1(1))]; %enforce time criteria
 
-%     ceq = [ctrl.tf-t_1(ind_1(1)), apex-.4, velo]; %enforce time and apex criteria
+    ceq = [ctrl.tf-t_1(ind_1(1)), velo]; %enforce time and apex criteria
                                                            
 % simply comment out any alternate constraints when not in use
     

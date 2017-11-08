@@ -17,9 +17,13 @@ function f = objective(x,z0, ctrl, tf)
 % provided using an anonymous function, just as we use anonymous
 % functions with ode45().
     p = parameters(x(1), x(2), x(3));
+    tf = x(4);
+    ctrl.tf = x(5);
+    ctrl.T = x(6:end);
+    
     [t_1, z_1, u_1, ind_1, sols_1] = hybrid_simulation(z0,ctrl,p,[0 tf]);
     h_c = COM_jumping_leg(z_1,p);
-    f = -max(h_c(2,:));    % negative of COM height
+    f = -max(h_c(2,end));    % negative of COM height
 
     % alternate objective functions:
 %     f = x(1);   % final time
