@@ -109,7 +109,7 @@ function u = control_laws(t,z,ctrl,p,iphase)
     if iphase == 1
         % Linearily interpolate torque in stance
         ctrl.t = linspace(0,ctrl.tf,length(ctrl.T));
-        u = interp1(ctrl.t,ctrl.T,t,'linear','extrap');
+        u = interp1(ctrl.t,ctrl.T,t,'pchip','extrap');
     else
         
         % PD Control in flight
