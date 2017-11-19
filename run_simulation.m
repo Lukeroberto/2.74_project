@@ -16,9 +16,9 @@ z0 = [0; pi/6; 0; 0; 0; 0; 0];                    % set initial state
 % to integrate this new state.
 
 % set guess
-tf = 1;                          % simulation final time
-ctrl.tf = .5;                    % control time points
-ctrl.T = [.5 .5 .5];             % control values limited by motor selection currently .77 Nm pololu
+tf = .5;                          % simulation final time
+ctrl.tf = .2;                    % control time points
+ctrl.T = [1.4 1.4 1.4 1.4];             % control values limited by motor selection currently .77 Nm pololu
 
 kappa = .5;
 l_ratio = .9;
@@ -83,8 +83,9 @@ xlabel('Time [s]')
 ylabel('Theta 2 [rad/s]')
 subplot(326)
 ctrl.t = linspace(0,ctrl.tf,length(ctrl.T));
-u = interp1(ctrl.t,ctrl.T,ctrl.t,'linear','extrap');
-plot(ctrl.t,u)
+ctrl.map = linspace(0,ctrl.tf,2*length(ctrl.T));
+u = interp1(ctrl.t,ctrl.T,ctrl.map,'pchip','extrap');
+plot(ctrl.map,u)
 xlabel('Time [s]')
 ylabel('Torque [Nm]')
 
