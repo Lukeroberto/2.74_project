@@ -134,7 +134,7 @@ function [value,isterminal,direction] = event_conditions(t,z,ctrl,p,iphase)
         isterminal(1) = 1;              % terminate integration when ground reaction force is zero
         direction(1) = -1;              % if it's decreasing
     else
-        value(2) = real(z(1));                % value() is the foot height
+        value(2) = real(z(1));          % value() is the foot height
         isterminal(2) = 1;              % terminate integration when foot height is zero
         direction(2) = -1;              % if it's decreasing
     end

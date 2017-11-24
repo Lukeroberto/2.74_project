@@ -1,4 +1,4 @@
-%% Run Simulation Script 
+%% Run Simulation Script
 % Setup and solve nonlinear programming problem for jumping leg. Saves the 
 % torque profile to a mat file.
 
@@ -51,56 +51,41 @@ xlabel('Time [s]')
 ylabel('Height of COM [m]')
 
 %% Run the animation
-figure(2)                                   % get the coordinates of the points to animate
-speed = .25;                                % set animation speed
+figure(2)                          % get the coordinates of the points to animate
+speed = .25;                                 % set animation speed
 clf                                         % clear fig
 animate_simple(t,z,p,speed)                 % run animation
 
 %% Plotting of Important variables
 figure(3)
-
-% Theta 1 Profile
 subplot(321)
-
 plot(t,z(2,:))
 xlabel('Time [s]')
 ylabel('Theta 1 [rad]')
-
-% Theta 2 Profile
 subplot(323)
-
 plot(t,z(3,:))
 xlabel('Time [s]')
 ylabel('Theta 2 [rad]')
-
-% Delta Theta Profile
 subplot(325)
 plot(t,z(3,:)-z(2,:))
 xlabel('Time [s]')
 ylabel('delta Theta [rad]')
-
-% Theta 1 Profile
 subplot(322)
-
 plot(t,z(5,:))
 xlabel('Time [s]')
 ylabel('Theta 1 [rad/s]')
-
-% Theta 2 Profile
 subplot(324)
-
 plot(t,z(6,:))
 xlabel('Time [s]')
 ylabel('Theta 2 [rad/s]')
-
-% Torque Profile
 subplot(326)
-plot(t(1:indices(1)), u(1:indices(1)));
+ctrl.t = linspace(0,ctrl.tf,length(ctrl.T));
+ctrl.map = linspace(0,ctrl.tf,2*length(ctrl.T));
+u = interp1(ctrl.t,ctrl.T,ctrl.map,'pchip','extrap');
+plot(ctrl.map,u)
 xlabel('Time [s]')
 ylabel('Torque [Nm]')
 
 
-%% Save the calculated torque profile to matlab
-n = 1;
-filename = "../Trajectories/Torque_profile_" + n; 
-save(filename, "u");
+% Save the calculated torque profile to matlab
+save("../../Trajectories/Torque_profile", "u");
