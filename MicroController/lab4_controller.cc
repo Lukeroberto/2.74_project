@@ -7,8 +7,8 @@
 #define PI 3.14159
 #define min(X, Y) (((X) < (Y)) ? (X) : (Y))
 
-#define NUM_INPUTS 8
-#define NUM_OUTPUTS 5
+#define NUM_INPUTS 6
+#define NUM_OUTPUTS 4
 
 AnalogIn current_in(A0);
 
@@ -34,14 +34,13 @@ int main (void) {
 
     while(1) {
         if (server.getParams(input_params,NUM_INPUTS)) {
-            float K_p           = input_params[0]; // Proportional Gain
-            float time_loop   = input_params[1]; // Time for the loop
+
+            float time_loop   = input_params[0]; // Time for the loop
+            float torque      = input_params[1]; // Torque
             float R           = input_params[2]; // Resistance ohms
             float k_b         = input_params[3]; // Back EMF constant
-            float K           = input_params[4];
-            float b           = input_params[5]; // damping factor
-            float pos_d       = input_params[6];
-            float optional    = input_params[7];
+            float optional    = input_params[4];
+
             // Setup experiment
             t.reset();
             t.start();
@@ -61,16 +60,16 @@ int main (void) {
                 float vel = encoder.getVelocity()*(360.0f/1200.0f)*(PI/180);
                 float pos = encoder.getPulses()*(360.0f/1200.0f)*(PI/180);
 
-                float err_pos = pos_d - pos;
+//                float err_pos = pos_d - pos;
 
                 // Desired torque = -K*theta + b*dtheta
-                float current_d = (1/k_b)*(-K*err_pos - b*vel);
+                float current_d = torque/k_b;
 
                 // Calculate Errors
-                float err_i = current_d - current;
+//                float err_i = current_d - current;
 
                 // Calculate output
-                float u = R*current_d + k_b*vel + K_p*err_i + optional;  // + K_d*derr + K_i*ierr;
+                float u = R*current_d + k_b*vel; // + K_d*derr + K_i*ierr;
                 float v_out = min(abs(u)/12, 1.0f);
 
                 int direction = u/abs(u);
@@ -89,10 +88,10 @@ int main (void) {
                 // Form output to send to MATLAB
                 float output_data[NUM_OUTPUTS];
                 output_data[0] = t.read();
-                output_data[1] = pos;
-                output_data[2] = vel;
-                output_data[3] = 12*v_out;
-                output_data[4] = current;
+                output_data[1] = 12*v_out;
+                output_data[2] = current*k_b;
+                output_data[3] = pos;
+
                 // Send data to MATLAB
                 server.sendData(output_data,NUM_OUTPUTS);
                 wait(.001);
