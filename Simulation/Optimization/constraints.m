@@ -30,15 +30,10 @@ function [cineq ceq] = constraints(x,z0, ctrl, tf)
     apex = h_c(2); %y coord at end of sim
     velo = h_c(4); %y velocity at end of sim
     
-    
-    cineq = [-min(acos(((p(2)/p(1))*cos(z_1(2,:))))) ]; 
-    
-    
-%     cineq = [-min(acos(((p(1)/p(2))*cos(z_1(2,:))))), max(z_1(2,:))-pi/2]; %prevent falling thru floor and hyperextension                                          
-%     ceq = [];
-%     ceq = [ctrl.tf-t_1(ind_1(1))]; %enforce time criteria
-
-    ceq = [ctrl.tf-t_1(ind_1(1)), 2-length(ind_1), velo]; %enforce time and apex criteria
+    cineq = [max(-(7.718-abs(52.360*u_1(1:ind_1(1))+89.2857*(u_1(1:ind_1(1)).^2))))]; 
+    %enforce power requirement
+    %pi/2-min(acos(((p(2)/p(1))*cos(z_1(2,:)))))
+    ceq = [ctrl.tf-t_1(ind_1(1))]; %enforce time and apex criteria
                                                            
 % simply comment out any alternate constraints when not in use
     

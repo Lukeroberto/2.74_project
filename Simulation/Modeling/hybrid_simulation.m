@@ -71,7 +71,7 @@ function [dz, Fc, Flim] = dynamics_continuous(t,z,ctrl,p,iphase)
        C =  C_jumping_leg(z,u,p);
        if C < 0   
             dC= dC_jumping_leg(z,u,p);
-            Fc = -10000 * C - 3*dC;
+            Fc = -10000 * C - 300*dC;
             if Fc < 0
                 Fc = 0;
             end
@@ -83,7 +83,7 @@ function [dz, Fc, Flim] = dynamics_continuous(t,z,ctrl,p,iphase)
     rk = rk_jumping_leg(z,u,p);
     if rk(1) < 0
         drk = drk_jumping_leg(z,u,p);
-        Flim = -1000*rk(1) - 3*drk(1);
+        Flim = -10000*rk(1) - 300*drk(1);
         if Flim < 0
             Flim = 0;
         end

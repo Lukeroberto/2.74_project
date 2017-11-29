@@ -100,6 +100,16 @@ xlabel('Time [s]')
 ylabel('Torque [Nm]')
 
 
+%% Power
+
+figure(4)
+motor_speed = z(6,:);
+power = motor_speed(1:indices(1)).*u(1:indices(1));
+plot(t(1:indices(1)),power)
+ylabel('Power [W]')
+xlabel('Time [s]')
+
+
 %% Save the calculated torque profile to matlab
 n = 1;
 filename = "../Trajectories/Torque_profile_" + n; 
