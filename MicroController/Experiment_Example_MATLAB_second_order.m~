@@ -2,22 +2,22 @@ function output_data = Experiment_Example_MATLAB()
     
     % Setup matlab figure
     figure; clf;           
-    subplot(221); 
+    subplot(211); 
     h1 = plot([0],[0]);
     h1.XData = []; h1.YData = [];
     ylabel('Voltage Command (V)');
     
-    subplot(222);
+    subplot(212);
     h2 = plot([0], [0]);
     h2.XData = []; h2.YData = [];
     ylabel('Torque Desired (Nm)');
 
-    subplot(223);
+    subplot(212);
     h3 = plot([0], [0]);
     h3.XData = []; h3.YData = [];
     ylabel('Current Sense(A)');
 
-    subplot(224);
+    subplot(212);
     h4 = plot([0], [0]);
     h4.XData = []; h4.YData = [];
     ylabel('Theta 2 (rad)');
@@ -42,17 +42,14 @@ function output_data = Experiment_Example_MATLAB()
         N = length(t);
         
         h1.XData(end+1:end+N) = t;   % Update subplot 1
-        h1.YData(end+1:end+N) = v_out;
+        h1.YData(end+1:end+N) = desired_torque;
         
         h2.XData(end+1:end+N) = t;   % Update subplot 2
-        h2.YData(end+1:end+N) = desired_torque;
-        
-        h3.XData(end+1:end+N) = t;   % Update subplot 3
-        h3.YData(end+1:end+N) = current_sense;
-        
-        h4.XData(end+1:end+N) = t;   % Update subplot 4
-        h4.YData(end+1:end+N) = theta_2;
-    
+        h2.YData(end+1:end+N) = current_sense;
+%         h3.XData(end+1:end+N) = t;
+%         h3.YData(end+1:end+N) = (v-R.*i)./vel;
+%         h4.XData(end+1:end+N) = t;
+%         h4.YData(end+1:end+N) = i;
     end
 
     frdm_ip  = '192.168.1.100';     % FRDM board ip
